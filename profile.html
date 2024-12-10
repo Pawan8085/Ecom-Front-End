@@ -72,25 +72,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js"></script>
   <script src="js/code.jquery.com_jquery-3.7.0.min.js"></script>
   <script>
-    function adjustHeight() {
-      var datas = document.getElementById("datas");
-      var contentHeight = datas.scrollHeight; // Total height of the content
-      var viewportHeight = window.innerHeight; // Height of the viewport (100vh)
-
-      // Set height to the greater of content height or 100vh
-      if (contentHeight > viewportHeight) {
-        datas.style.height = contentHeight + "px"; // Set height to content height if it exceeds 100vh
-      } else {
-        datas.style.height = "100vh"; // Otherwise, set it to 100vh
-      }
-    }
-
-    // Call the function initially
-    adjustHeight();
-
-    // Recalculate when the window is resized
-    window.addEventListener("resize", adjustHeight);
-
+    
     // get jwt key
     const jwt = getJwt();
 
