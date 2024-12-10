@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Product</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/product.css" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"
+    />
+  </head>
+  <body>
+    <div id="myheader">
+      <div id="appname">E-Commerce Store</div>
+      <input type="text" id="search" placeholder="Search Product" />
+      <div id="cartsection">
+        <div id="account">
+          <span class="material-symbols-outlined"> account_circle </span>
+          <a id="username">Login</a>
+        </div>
+
+        <span class="material-symbols-outlined" id="cart"> shopping_cart </span>
+      </div>
+    </div>
+    <hr />
+
+    <div id="view-product"></div>
+  </body>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js"></script>
+  <script src="js/code.jquery.com_jquery-3.7.0.min.js"></script>
+  <script>
+    const jwt = getJwt();
+    userProfile();
+    function userProfile() {
+      const url = "http://localhost:8080/app/customer/profile";
+      fetch(url, {
+        method: "GET", // or POST if needed
+        headers: {
+          Authorization: `Bearer ${jwt}`, // Add the JWT token in Authorization header
+          "Content-Type": "application/json", // Adjust content type as per API
+        },
+      })
+        .then((response) => {
+          if (response.ok) {
+            return response.json();
+          } else {
+            throw new Error("Failed to fetch data");
+          }
+        })
+        .then((customer) => {
+          $("#username").text(customer.name);
+          $("#username").attr("href", "profile.html");
+        })
+        .catch((error) => {
+          console.error("Error:", error.message);
+          $("#username").text("Login");
+          $("#username").attr("href", "login.html");
+        });
+    }
+    window.onload = function () {
+      // Extract the productId from the URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const productId = urlParams.get("pId");
+      console.log(productId);
+
+      let url = `http://localhost:8080/app/search/product/${productId}`;
+
+      fetch(url)
+        .then((response) => {
+          if (response.ok) {
+            return response.json();
+          } else {
+            throw new Error("Failed to fetch product details");
+          }
+        })
+        .then((data) => {
+          let imgDiv = $("<div></div>").attr("id", "pro-vw-imgdiv");
+
+          let img = $("<img>").attr("src", data.image).attr("id", "pro-vw-img");
+
+          let buyDiv = $("<div></div>").attr("id", "pro-vw-buydiv");
+
+          let addToCart = $("<button></button>")
+            .attr("id", "pro-vw-cart")
+            .on("click", function () {
+              addToMyCart(data.pid);
+            });
+          let cartIcon = $("<span></span>")
+            .addClass("material-symbols-outlined")
+            .text("shopping_cart")
+            .css("font-size", "16px");
+          addToCart.append(cartIcon).append(" ADD TO CART");
+
+          let buy = $("<button></button>")
+            .attr("id", "pro-vw-buy")
+            .on("click", function () {
+              window.open(`buy.html?pId=${data.pid}`, "_blank");
+            });
+          let buyIcon = $("<span></span>")
+            .addClass("material-symbols-outlined")
+            .text("flash_on")
+            .css("font-size", "16px");
+          buy.append(buyIcon).append(" BUY");
+
+          buyDiv.append(addToCart, buy);
+          imgDiv.append(img, buyDiv);
+
+          let productDetails = $("<div></div>").attr("id", "pro-vw-details");
+
+          let product = $("<p></p>").text(data.productName);
+          let ratingDiv = $("<div></div>").addClass("rating-div");
+          let rating = $("<span></span>")
+            .text(`${data.rating}★`)
+            .addClass("rating-stars");
+          let ratingCount = $("<span></span>")
+            .text(`(${data.ratingCount})`)
+            .addClass("rating-count");
+          ratingDiv.append(rating, ratingCount);
+
+          let price = $("<p></p>").text(`₹${data.price}`);
+
+          let descriptionDiv = $("<div></div>").attr("id", "product-desc-div");
+          let highlights = $("<p>Highlights</p>").css({
+            "font-size": "16px",
+            color: "gray",
+          });
+          let description = $("<p></p>").text(data.productDescription).css({
+            "margin-left": "10px",
+          });
+          descriptionDiv.append(highlights, description);
+
+          // rating & reviews
+          let ratingAndReviewDiv = $("<div></div>").attr(
+            "id",
+            "rating-and-reviews"
+          );
+
+          let reviewHeading = $("<div></div>").attr("id", "review-heading");
+          let ratingAndReviews = $("<h2>Rating & Reviews</h2>").css({
+            "font-weight": "500",
+          });
+          let rateProduct = $("<button>Rate Product</button>")
+            .css({
+              "background-color": "white",
+              "font-weight": "510",
+              border: "none",
+              display: "flex",
+              "align-items": "center",
+              "justify-content": "center",
+              padding: "10px 20px",
+              "box-shadow": "rgba(99, 99, 99, 0.2) 0px 2px 8px 0px",
+              cursor: "pointer",
+            })
+            .on("click", function () {
+              window.open(`review.html?pId=${data.pid}`, "_blank");
+            });
+
+          reviewHeading.append(ratingAndReviews, rateProduct);
+          ratingAndReviewDiv.append(reviewHeading);
+
+          // user review div
+          let userReviewDiv = $("<div></div>").attr("id", "user-review-div");
+
+          productDetails.append(
+            product,
+            ratingDiv,
+            price,
+            descriptionDiv,
+            ratingAndReviewDiv,
+            userReviewDiv
+          );
+          $("#view-product").append(imgDiv, productDetails);
+          const url = `http://localhost:8080/app/search/reviews/${productId}?page=0`;
+          appendRatingAndReviews(data.pid, url);
+        })
+        .catch((error) => {
+          console.error("Error:", error.message);
+        });
+    };
+
+    function appendRatingAndReviews(productId, url) {
+      $("#user-review-div").empty();
+      console.log(url);
+
+      fetch(url)
+        .then((response) => {
+          // console.log(response.status)
+          if (response.ok) {
+            return response.json();
+          } else {
+            throw new Error("Failed to fetch product details");
+          }
+        })
+        .then((data) => {
+          data.data.forEach((r) => {
+            let reviewItem = $("<div></div>").addClass("review-item");
+
+            let ratingAndStatus = $("<div></div>").addClass("rating-status");
+            let userRating = $("<button></button>").text(`${r.rating}★ `).css({
+              display: "flext",
+              "align-items": "center",
+              "justify-content": "center",
+              "background-color": "#f0ad4e",
+              color: "white",
+              border: "none",
+              "border-radius": "2px",
+            });
+            let status = $("<p></P>")
+              .text(r.ratingStatus)
+              .css("margin-left", "10px");
+            ratingAndStatus.append(userRating, status);
+
+            let userReview = $("<p></p>").text(r.description).css({
+              "font-size": "15px",
+            });
+
+            let reviewerInfo = $("<div></div>").addClass("reviewer-info");
+            let uname = $("<p></p>").text(r.customerName + ", ");
+            let ucity = $("<p></p>")
+              .text(r.customerCity)
+              .css("margin-left", "10px");
+            reviewerInfo.append(uname, ucity);
+
+            reviewItem.append(ratingAndStatus, userReview, reviewerInfo);
+            $("#user-review-div").append(reviewItem);
+          });
+
+          let page = $("<div></div>").addClass("page");
+
+          let curPageDiv = $("<div></div>").attr("id", "cur-page");
+          let curPage = $("<p></p>")
+            .text(
+              `Page ${data.pageInfo.currentPage + 1} of ${
+                data.pageInfo.totalPages
+              }`
+            )
+            .css({
+              "font-size": "14px",
+              width: "10%",
+            });
+          curPageDiv.append(curPage);
+
+          let pageOptions = $("<div></div>").attr("id", "pages");
+
+          if (data.pageInfo.currentPage > 0) {
+            let prevPage = $("<p></p>")
+              .text("PREVIOUS")
+              .on("click", function () {
+                const url = `http://localhost:8080/app/search/reviews/${productId}?page=${
+                  data.pageInfo.currentPage - 1
+                }`;
+                appendRatingAndReviews(productId, url);
+              })
+              .css({
+                color: "#2874f0",
+                "font-size": "15px",
+              })
+              .hover(function () {
+                $(this).css("cursor", "pointer");
+              });
+            pageOptions.append(prevPage);
+          }
+
+          if (data.pageInfo.currentPage < 5) {
+            for (
+              let i = 1;
+              i <=
+              (data.pageInfo.totalPages < 10 ? data.pageInfo.totalPages : 10);
+              i++
+            ) {
+              let pageDiv = $(`<div>${i}</div>`)
+                .addClass("page-div")
+                .attr("id", `p${i}`);
+
+              // Append the page div to the page options container
+
+              pageOptions.append(pageDiv);
+
+              // Attach the click event listener to the pageDiv element
+              pageDiv.on("click", function () {
+                const url = `http://localhost:8080/app/search/reviews/${productId}?page=${
+                  i - 1
+                }`;
+                appendRatingAndReviews(productId, url);
+              });
+            }
+          } else {
+            for (
+              let i = data.pageInfo.currentPage + 1 - 4;
+              i <= data.pageInfo.currentPage;
+              ++i
+            ) {
+              let pageDiv = $(`<div>${i}</div>`)
+                .addClass("page-div")
+                .attr("id", `p${i}`);
+
+              // Append the page div to the page options container
+
+              pageOptions.append(pageDiv);
+
+              // Attach the click event listener to the pageDiv element
+              pageDiv.on("click", function () {
+                const url = `http://localhost:8080/app/search/reviews/${productId}?page=${
+                  i - 1
+                }`;
+                appendRatingAndReviews(productId, url);
+              });
+            }
+
+            for (
+              let i = data.pageInfo.currentPage + 1;
+              i <=
+              (data.pageInfo.currentPage + 6 < data.pageInfo.totalPages
+                ? data.pageInfo.currentPage + 6
+                : data.pageInfo.totalPages);
+              ++i
+            ) {
+              let pageDiv = $(`<div>${i}</div>`)
+                .addClass("page-div")
+                .attr("id", `p${i}`);
+
+              // Append the page div to the page options container
+
+              pageOptions.append(pageDiv);
+
+              // Attach the click event listener to the pageDiv element
+              pageDiv.on("click", function () {
+                const url = `http://localhost:8080/app/search/reviews/${productId}?page=${
+                  i - 1
+                }`;
+                appendRatingAndReviews(productId, url);
+              });
+            }
+          }
+
+          if (data.pageInfo.currentPage + 1 < data.pageInfo.totalPages) {
+            let nextPage = $("<p></p>")
+              .text("NEXT")
+              .on("click", function () {
+                const url = `http://localhost:8080/app/search/reviews/${productId}?page=${
+                  data.pageInfo.currentPage + 1
+                }`;
+                appendRatingAndReviews(productId, url);
+              })
+              .css({
+                color: "#2874f0",
+                "font-size": "15px",
+              })
+              .hover(function () {
+                $(this).css("cursor", "pointer");
+              });
+            pageOptions.append(nextPage);
+          }
+
+          page.append(curPage, pageOptions);
+
+          $("#user-review-div").append(page);
+
+          // heilight current page
+          $(`#p${data.pageInfo.currentPage + 1}`).css({
+            "border-radius": "15px",
+            "background-color": "#2874f0",
+            color: "white",
+          });
+        })
+        .catch((error) => {
+          console.error("Error:", error.message);
+        });
+    }
+
+    function addToMyCart(pId) {
+      const apiUrl = `http://localhost:8080/app/customer/cart/${pId}`;
+
+      fetch(apiUrl, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      })
+        .then((response) => {
+          if (response.status === 401) {
+            window.location = "login.html";
+          }
+          if (!response.ok) {
+            return response.json().then((error) => {
+              throw new Error(error.message); // The error message returned by the API
+            });
+          } else {
+            return response.text();
+          }
+        })
+        .then((data) => {
+          swal("Product added to cart");
+        })
+        .catch((error) => {
+          swal(error.message);
+          console.error("Error:", error.message);
+        });
+    }
+
+    function getJwt() {
+      const cookies = document.cookie; // Get all cookies as a single string
+      const cookieArray = cookies.split("; "); // Split the string into individual cookies
+
+      for (let cookie of cookieArray) {
+        if (cookie.startsWith("jwt=")) {
+          return cookie.substring(4); // Return the JWT value
+        }
+      }
+
+      return null;
+    }
+  </script>
+</html>

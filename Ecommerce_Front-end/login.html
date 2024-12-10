@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LogIn</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css"
+      integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="css/login.css" />
+  </head>
+  <body>
+   
+
+    <form id="loginForm" class="mx-auto p-5 mt-5">
+      <h4 class="mb-3">Login Here</h4>
+      
+      <div class="form-group">
+        <label for="username">Email address</label>
+        <input
+          type="email"
+          class="form-control"
+          id="username"
+          aria-describedby="emailHelp"
+          placeholder="Enter email"
+        />
+        <small id="emailHelp" class="form-text text-muted"
+          >We'll never share your email with anyone else.</small
+        >
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input
+          type="password"
+          class="form-control"
+          id="password"
+          placeholder="Password"
+        />
+      </div>
+      
+      <div class="form-group d-flex justify-content-end">
+       
+        <a href="forgotpass.html" class="ml-2">Forgot  password?</a>
+      </div>
+      
+      
+      <button type="submit" class="btn btn-primary form-control">Login</button>
+      <div class="form-group text-center mt-4">
+       
+        <a href="register.html" >Register here</a>
+      </div>
+    </form>
+
+    <p id="message"></p>
+  </body>
+  <script src="js/code.jquery.com_jquery-3.7.0.min.js"></script>
+  <script src="js/script.js"></script>
+  <script>
+    const token = getJwt();
+    window.onload = function () {
+      const url = "http://localhost:8080/app/customer/profile";
+      fetch(url, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      })
+        .then((response) => {
+          if (response.ok) {
+            
+           window.location = 'profile.html';
+          } else {
+            // Handle error case when user is not valid
+            return response.json().then((errorMessage) => {
+              throw new Error(errorMessage.message);
+            });
+          }
+        })
+        .catch((error) => {
+         
+          console.error(error);
+        });
+    };
+
+
+    document
+      .getElementById("loginForm")
+      .addEventListener("submit", function (e) {
+        e.preventDefault(); 
+
+        const username = $("#username").val();
+        const password = $("#password").val();
+        const url = "http://localhost:8080/app/signIn";
+
+        // Base64 encode the credentials for Basic Auth
+        const basicAuth = btoa(`${username}:${password}`);
+
+        // Fetch API to send the request
+        fetch(url, {
+          method: "GET", // Your API is a GET request
+          headers: {
+            Authorization: `Basic ${basicAuth}`, // Add Basic Auth header
+            "Content-Type": "application/json", // Set the content type
+          },
+          credentials: "include", // This ensures cookies like JSESSIONID are included
+        })
+          .then((response) => {
+            if (response.ok) {
+              // Get the JWT from the headers (if it's included as a header)
+              const jwt = response.headers.get("Authorization"); // JWT is returned in header
+              if (jwt) {
+                // Save the JWT to localStorage (or sessionStorage as per your preference)
+                localStorage.setItem("jwt", jwt);
+
+                // Set the JWT in a cookie
+                const jwtExpiration = getJwtExpiration(jwt); // Assume this function gets the expiration time
+                setCookie("jwt", jwt, jwtExpiration); // Set cookie with JWT and its expiration
+
+                // Use the JWT in future requests for authenticated APIs
+                console.log("JWT Token:", jwt);
+              } else {
+                console.log("No JWT token found in response headers.");
+              }
+              return response.text(); // Assuming the API returns a text message (adjust if needed)
+            } else {
+              throw new Error("Login failed");
+            }
+          })
+          .then((data) => {
+            
+            window.location = 'profile.html'
+          })
+          .catch((error) => {
+            document.getElementById("message").textContent = error.message; // Display error message
+          });
+      });
+
+    // Function to set a cookie
+    function setCookie(name, value, exp) {
+      const date = new Date(exp * 1000); // Convert 'exp' from seconds to milliseconds
+      document.cookie = `${name}=${value}; expires=${date.toUTCString()}; path=/; Secure`; // Adjust as needed
+    }
+
+    // Function to extract expiration time from JWT
+    function getJwtExpiration(jwt) {
+      const payload = JSON.parse(atob(jwt.split(".")[1])); // Decode the JWT payload
+      return payload.exp; // Return the 'exp' claim from the payload
+    }
+
+    function getJwt() {
+      const cookies = document.cookie; // Get all cookies as a single string
+      const cookieArray = cookies.split("; "); // Split the string into individual cookies
+
+      for (let cookie of cookieArray) {
+        if (cookie.startsWith("jwt=")) {
+          return cookie.substring(4); // Return the JWT value
+        }
+      }
+
+      return null;
+    }
+  </script>
+</html>

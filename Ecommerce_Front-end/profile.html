@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="css/style.css" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"
+    />
+    <title>My Profile</title>
+  </head>
+  <body>
+    <div id="myheader">
+      <div id="appname">E-Commerce Store</div>
+      <input type="text" id="search" placeholder="Search Product" />
+      <div id="cartsection">
+        <div id="account">
+          <span class="material-symbols-outlined"> account_circle </span>
+          <a id="username">!</a>
+        </div>
+
+        <span class="material-symbols-outlined" id="cart"> shopping_cart </span>
+      </div>
+    </div>
+
+    <div id="profile">
+      <div id="options">
+        <div id="user">
+          <img src="profile.png" alt="" />
+          <div>
+            <p id="hello">Hello,</p>
+            <p id="uname">!</p>
+          </div>
+        </div>
+
+        <div id="useroptions">
+          <div id="update">
+            <span class="material-symbols-outlined"> person </span>
+            <h5>Update Profile</h5>
+          </div>
+
+          <div id="password">
+            <spacn class="material-symbols-outlined"> lock</spacn>
+            <h5>Password</h5>
+          </div>
+
+          <div id="orders">
+            <spacn class="material-symbols-outlined"> shopping_bag</spacn>
+            <h5>My Orders</h5>
+          </div>
+
+          <div id="cartitems">
+            <spacn class="material-symbols-outlined"> shopping_cart</spacn>
+            <h5>Cart Items</h5>
+          </div>
+
+          <div id="logout">
+            <spacn class="material-symbols-outlined"> logout</spacn>
+            <h5>Logout</h5>
+          </div>
+        </div>
+      </div>
+
+      <div id="datas"></div>
+    </div>
+  </body>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js"></script>
+  <script src="js/code.jquery.com_jquery-3.7.0.min.js"></script>
+  <script>
+    function adjustHeight() {
+      var datas = document.getElementById("datas");
+      var contentHeight = datas.scrollHeight; // Total height of the content
+      var viewportHeight = window.innerHeight; // Height of the viewport (100vh)
+
+      // Set height to the greater of content height or 100vh
+      if (contentHeight > viewportHeight) {
+        datas.style.height = contentHeight + "px"; // Set height to content height if it exceeds 100vh
+      } else {
+        datas.style.height = "100vh"; // Otherwise, set it to 100vh
+      }
+    }
+
+    // Call the function initially
+    adjustHeight();
+
+    // Recalculate when the window is resized
+    window.addEventListener("resize", adjustHeight);
+
+    // get jwt key
+    const jwt = getJwt();
+
+    window.onload = function () {
+      const url = "http://localhost:8080/app/customer/profile";
+      fetch(url, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${jwt}`, // Add the JWT token in Authorization header
+          "Content-Type": "application/json", // Adjust content type as per API
+        },
+      })
+        .then((response) => {
+          if (response.ok) {
+            return response.json();
+          } else {
+            throw new Error("Failed to fetch data");
+          }
+        })
+        .then((customer) => {
+          $("#uname").text(customer.name);
+          $("#username").text(customer.name);
+        })
+        .catch((error) => {
+          console.error("Error:", error.message);
+          window.location = "login.html";
+        });
+    };
+    // if (jwt != null) {
+    //   document.getElementById("uname").innerText =
+    //     localStorage.getItem("username");
+    // }
+
+    document.getElementById("password").addEventListener("click", function () {
+      addPasswordChangeOption();
+    });
+
+    $("#update").on("click", function () {
+      // $('#datas').css('height', '100vh');
+      document.getElementById("datas").innerHTML = null;
+      let h2 = document.createElement("h2");
+      h2.innerText = "Update Profile here";
+
+      document.getElementById("datas").append(h2);
+    });
+
+    $("#orders").on("click", function () {
+      $("#datas").empty();
+      let h2 = document.createElement("h2");
+      h2.innerText = "Your Orders";
+
+      document.getElementById("datas").append(h2);
+      $("#options").css("margin-top", "0px");
+      appendOrderItems();
+    });
+
+    $("#cartitems, #cart").on("click", function () {
+      document.getElementById("datas").innerHTML = null;
+
+      let h2 = document.createElement("h2");
+      h2.innerText = "Cart Items";
+
+      let cartDiv = document.createElement("div");
+      cartDiv.setAttribute("id", "cartdata");
+
+      document.getElementById("datas").append(h2, cartDiv);
+      $("#options").css("margin-top", "0px");
+
+      appendCartItems();
+    });
+
+    function appendCartItems() {
+      const url = "http://localhost:8080/app/customer/cart";
+      fetch(url, {
+        method: "GET", // or POST if needed
+        headers: {
+          Authorization: `Bearer ${jwt}`, // Add the JWT token in Authorization header
+          "Content-Type": "application/json", // Adjust content type as per API
+        },
+      })
+        .then((response) => {
+          if (response.ok) {
+            return response.json(); // Assuming the API returns JSON data
+          } else {
+            throw new Error("Failed to fetch cart data");
+          }
+        })
+        .then((data) => {
+          console.log("Cart Data:", data); // Handle
+
+          data.forEach((c) => {
+            // Create a container for the cart item
+            let cart = $("<div></div>").addClass("cart-item"); // Add a class for styling
+
+            // Left side - Image and quantity controls
+            let leftDiv = $("<div></div>").addClass("left-section");
+            let img_div = $("<div></div>").addClass("cart-img-div");
+            let img = $("<img>").attr("src", c.image).addClass("cart-image"); // Add image class
+            img_div.append(img);
+
+            let quantityDiv = $("<div></div>").addClass("quantity-section");
+            let decreaseBtn = $("<button>-</button>")
+              .addClass("quantity-btn")
+              .on("click", function () {
+                updateQuantity(c.quantity, c.cartItemId, "decrease", quantity); // Pass quantity element
+              });
+
+            let quantity = $("<span></span>")
+              .addClass("item-quantity")
+              .text(c.quantity); // Assuming there's a quantity field in c
+
+            let increaseBtn = $("<button>+</button>")
+              .addClass("quantity-btn")
+              .on("click", function () {
+                updateQuantity(c.quantity, c.cartItemId, "increase", quantity); // Pass quantity element
+              });
+
+            // Append image and quantity controls to the left section
+            quantityDiv.append(decreaseBtn, quantity, increaseBtn);
+            leftDiv.append(img_div, quantityDiv);
+
+            // Right side - Product price and action buttons
+            let rightDiv = $("<div></div>").addClass("right-section");
+
+            let productPriceDiv = $("<div></div>").addClass("cart-price-div");
+            let product = $("<p></p>").text(c.product);
+            let price = $("<p></p>").text(`₹${c.price}`);
+            productPriceDiv.append(product, price);
+
+            let actionDiv = $("<div></div>").addClass("action-section");
+            let buyBtn = $("<h4>Buy</h4>")
+              .addClass("action-btn")
+              .on("click", function () {
+                window.open(
+                  `buy.html?pId=${c.productId}&cId=${c.quantity}`,
+                  "_blank"
+                );
+              });
+            let removeBtn = $("<h4>Remove</h4>").addClass("action-btn");
+
+            // Append price and action buttons to the right section
+            actionDiv.append(buyBtn, removeBtn);
+            rightDiv.append(productPriceDiv, actionDiv);
+
+            // Append both left and right sections to the cart item
+            cart.append(leftDiv, rightDiv);
+
+            // Append the cart item to the cart data container
+            $("#cartdata").append(cart);
+          });
+        })
+        .catch((error) => {
+          console.error("Error:", error.message);
+        });
+    }
+
+    function updateQuantity(
+      currentQuantity,
+      cartItemId,
+      action,
+      quantityElement
+    ) {
+      let actionType = action === "increase" ? 1 : 0;
+
+      // API URL with cart item ID and action type
+      let apiUrl = `http://localhost:8080/app/customer/cart/${cartItemId}?type=${actionType}`;
+
+      // Make the GET request to update the quantity on the server
+      fetch(apiUrl, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${jwt}`, // Include JWT if needed
+          "Content-Type": "application/json",
+        },
+        credentials: "include", // Include cookies if needed
+      })
+        .then((response) => response.json()) // Assuming API returns JSON with updated quantity
+        .then((data) => {
+          // Update the quantity in the UI
+          quantityElement.text(data);
+        })
+        .catch((error) => {
+          console.error("Error updating quantity:", error.message);
+        });
+    }
+
+    function appendOrderItems() {
+      const url = "http://localhost:8080/app/customer/orders";
+      fetch(url, {
+        method: "GET", // or POST if needed
+        headers: {
+          Authorization: `Bearer ${jwt}`, // Add the JWT token in Authorization header
+          "Content-Type": "application/json", // Adjust content type as per API
+        },
+        credentials: "include", // Include cookies if required
+      })
+        .then((response) => {
+          if (response.ok) {
+            return response.json(); // Assuming the API returns JSON data
+          } else {
+            throw new Error("Failed to fetch cart data");
+          }
+        })
+        .then((data) => {
+          console.log("Order Items:", data); // Handle
+          let orders = $("<div></div>").attr("id", "orders");
+          data.forEach((order) => {
+            let orderItem = $("<div></div>").addClass("order-item");
+
+            let img = $("<img></img>")
+              .addClass("order-img")
+              .attr("src", order.image);
+
+            if (order.product.length >= 40) {
+              order.product = order.product.substring(0, 40) + "...";
+            }
+            let product = $("<p></p>")
+              .addClass("order-product")
+              .text(order.product);
+
+            let price = $("<p></p>")
+              .text(`₹${order.price}`)
+              .css("font-size", "14px");
+
+            let orderMessage = $("<p>Your item has been delivered</p>").css(
+              "font-size",
+              "14px"
+            );
+
+            orderItem.append(img, product, price, orderMessage);
+            orders.append(orderItem);
+          });
+          $("#datas").append(orders);
+        })
+        .catch((error) => {
+          console.error("Error:", error.message);
+        });
+    }
+
+    function addPasswordChangeOption() {
+      $("#datas").empty();
+
+      // Create an h2 element with centered text
+      let h2 = $("<h2></h2>")
+        .text("Change Password")
+        .css("text-align", "center");
+
+      // Create a form element
+      let form = $("<form></form>").attr("id", "passwordform");
+
+      // Create input fields for old and new passwords
+      let op = $('<input type="password"></input>')
+        .addClass("oldpass")
+        .attr("placeholder", "Enter your old password");
+      let np = $('<input type="password"></input>')
+        .addClass("newpass")
+        .attr("placeholder", "New Password");
+
+      // Create submit button
+      let submitBtn = $("<button></button>")
+        .attr({
+          type: "submit",
+          id: "submit-btn",
+        })
+        .text("NEXT")
+        .css("margin-top", "10px")
+        .on("click", function (event) {
+          event.preventDefault();
+
+          // Get values using jQuery
+          const oldpass = $(".oldpass").val();
+
+          const data = {
+            oldPassword: oldpass,
+          };
+
+          fetch("http://localhost:8080/app/customer/change-password", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${jwt}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+          })
+            .then((response) => {
+              if (!response.ok) {
+                // If the response is not OK, get the error message from the response body
+                return response.json().then((errorText) => {
+                  throw new Error(errorText.message); // Pass the error message to the catch block
+                });
+              }
+              // If response is OK, read the response text (the success message)
+              return response.text();
+            })
+            .then((message) => {
+              // Handle success: Display message
+              swal(message);
+              $("#submit-btn").remove();
+              let np = $('<input type="password"></input>')
+                .addClass("newpass")
+                .attr("placeholder", "New Password");
+              let otpInput = $("<input>").attr({
+                type: "text",
+                id: "otp-field",
+                placeholder: "Enter otp here",
+              });
+              let verifyBtn = $("<button></button>")
+                .attr({
+                  type: "submit",
+                  id: "verify-btn",
+                })
+                .text("Verify & Submit")
+                .css("margin-top", "10px")
+                .on("click", function (envent) {
+                  envent.preventDefault();
+                  verifyAndChangePassword({
+                    oldPassword: $(".oldpass").val(),
+                    newPassword: $(".newpass").val(),
+                    otp: $("#otp-field").val(),
+                  });
+                });
+              $("#passwordform").append(np, otpInput, verifyBtn);
+            })
+            .catch((error) => {
+              // Handle errors: Display error message
+              swal(error.message);
+              console.error("Error:", error.message);
+            });
+        });
+
+      // Append input fields and button to the form
+      form.append(op, submitBtn);
+
+      // Append h2 and form to the "datas" element
+      $("#datas").append(h2, form);
+    }
+    function verifyAndChangePassword(data) {
+      fetch("http://localhost:8080/app/customer/change-password/verify-otp", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      })
+        .then((response) => {
+          if (!response.ok) {
+            // If the response is not OK, get the error message from the response body
+            return response.json().then((errorText) => {
+              throw new Error(errorText.message); // Pass the error message to the catch block
+            });
+          }
+          // If response is OK, read the response text (the success message)
+          return response.text();
+        })
+        .then((message) => {
+          // Handle success: Display message
+          swal(message);
+          addPasswordChangeOption();
+        })
+        .catch((error) => {
+          // Handle errors: Display error message
+          swal(error.message);
+          console.error("Error:", error.message);
+        });
+    }
+
+    $("#logout").on("click", function () {
+      logout();
+    });
+    function logout() {
+      // Delete the cookie by setting its expiration to the past
+      document.cookie = "jwt=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+
+      window.location = "login.html";
+      
+    }
+
+    function getJwt() {
+      const cookies = document.cookie; // Get all cookies as a single string
+      const cookieArray = cookies.split("; "); // Split the string into individual cookies
+
+      for (let cookie of cookieArray) {
+        if (cookie.startsWith("jwt=")) {
+          return cookie.substring(4); // Return the JWT value
+        }
+      }
+
+      return null;
+    }
+  </script>
+</html>

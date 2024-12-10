@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="css/style.css" />
+
+    <title>Buy Product</title>
+
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"
+    />
+    <style>
+      #buy-container {
+        width: 50%;
+        margin: auto;
+        margin-top: 60px;
+      }
+      #buy-summary {
+        background-color: #2874f0;
+        color: white;
+        padding: 10px 20px;
+      }
+      #buy-div {
+        background-color: white;
+
+        padding: 20px;
+
+        display: flex;
+      }
+      #buy-img-div {
+        width: 30%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      #buy-img {
+        width: 100%;
+      }
+
+      #product-details {
+        width: 70%;
+        display: flex;
+        flex-direction: column;
+        margin-top: -15px;
+      }
+      #buy-btn-div {
+        margin-top: 2px;
+        width: 100%;
+        height: 55px;
+        background-color: white;
+      }
+      #buy-btn {
+        float: right;
+        margin-top: 5px;
+        border: none;
+        background-color: #fb641b;
+        color: white;
+        padding: 13px 50px;
+        cursor: pointer;
+      }
+      .paymentDiv {
+        display: flex;
+        flex-direction: column;
+        margin-top: 20px;
+      }
+      
+    </style>
+  </head>
+  <body>
+    <div id="myheader">
+      <div id="appname">E-Commerce Store</div>
+      <input type="text" id="search" placeholder="Search Product" />
+      <div id="cartsection">
+        <div id="account">
+          <span class="material-symbols-outlined"> account_circle </span>
+          <a id="username">Login</a>
+        </div>
+
+        <span class="material-symbols-outlined" id="cart"> shopping_cart </span>
+      </div>
+    </div>
+    <hr />
+
+    <div id="buy-container">
+      <div id="buy-summary">ORDER SUMMARY</div>
+    </div>
+  </body>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js"></script>
+  <script src="js/code.jquery.com_jquery-3.7.0.min.js"></script>
+  <script>
+    const jwt = getJwt();
+    userProfile();
+    function userProfile() {
+      const url = "http://localhost:8080/app/customer/profile";
+      fetch(url, {
+        method: "GET", // or POST if needed
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+          "Content-Type": "application/json",
+        },
+      })
+        .then((response) => {
+          if (response.ok) {
+            return response.json();
+          } else {
+            throw new Error("Failed to fetch data");
+          }
+        })
+        .then((customer) => {
+          $("#username").text(customer.name);
+          $("#username").attr("href", "profile.html");
+        })
+        .catch((error) => {
+          window.location = "login.html";
+        });
+    }
+
+    window.onload = function () {
+      const urlParams = new URLSearchParams(window.location.search);
+      const productId = urlParams.get("pId");
+      const pq = urlParams.get("cId");
+
+      fetch(`http://localhost:8080/app/search/product/${productId}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+        .then((response) => {
+          if (response.ok) {
+            return response.json();
+          } else {
+            throw new Error("Failed to fetch data");
+          }
+        })
+        .then((product) => {
+          console.log(product.image);
+
+          let buydiv = $("<div></div>").attr("id", "buy-div");
+          let buyImgDiv = $("<div></div>").attr("id", "buy-img-div");
+          let buyImg = $("<img>").attr({
+            src: product.image,
+            id: "buy-img",
+          });
+
+          let productQuantity = pq ?? 1;
+          let quantityDiv = $("<div></div>").addClass("quantity-section");
+          let decreaseBtn = $("<button>-</button>")
+            .addClass("quantity-btn")
+            .on("click", function () {
+              productQuantity =
+                productQuantity - 1 > 0 ? productQuantity - 1 : productQuantity;
+              $(".item-quantity").text(productQuantity);
+              $("#pro-price").text(`₹${product.price * productQuantity}`);
+            });
+
+          let quantity = $("<span></span>")
+            .addClass("item-quantity")
+            .text(productQuantity);
+
+          let increaseBtn = $("<button>+</button>")
+            .addClass("quantity-btn")
+            .on("click", function () {
+              productQuantity += 1;
+              $(".item-quantity").text(productQuantity);
+              $("#pro-price").text(`₹${product.price * productQuantity}`);
+            });
+
+          quantityDiv.append(decreaseBtn, quantity, increaseBtn);
+
+          let paymentDiv = $("<div></div>").addClass("paymentDiv");
+
+          let paymentSelect = $("<select></select>").addClass("paymentSelect");
+
+          paymentSelect.append(
+            $("<option></option>").val("ONLINE").text("Online")
+          );
+          paymentSelect.append(
+            $("<option></option>")
+              .val("CASH_ON_DELIVERY")
+              .text("Cash on Delivery")
+          );
+
+          let paymentLabel = $("<label></label>")
+            .attr("for", "paymentSelect")
+            .text("Payment Method: ");
+
+          paymentDiv.append(paymentLabel, paymentSelect);
+
+          buyImgDiv.append(buyImg, quantityDiv, paymentDiv);
+
+          // product details
+          let productDetailsDiv = $("<div><div>").attr("id", "product-details");
+          if (product.productName.length >= 90) {
+            product.productName = product.productName.substring(0, 90) + "...";
+          }
+          let productTitle = $("<p></p>").text(product.productName);
+          let productPrice = $('<p id="pro-price"></p>')
+            .text(`₹${product.price * productQuantity}`)
+            .css({
+              "margin-top": "-5px",
+              "font-weight": "bold",
+            });
+          productDetailsDiv.append(productTitle, productPrice);
+          buydiv.append(buyImgDiv, productDetailsDiv);
+
+          let buyBtnDiv = $("<div></div>").attr("id", "buy-btn-div");
+          let buyBtn = $("<button>BUY NOW</button>")
+            .attr("id", "buy-btn")
+            .on("click", function () {
+              let paymentType = $(".paymentSelect").val();
+              const buyData = {
+                productId: product.pid,
+                quantity: productQuantity,
+                paymentType: paymentType,
+              };
+              createOrder(buyData);
+            });
+          buyBtnDiv.append(buyBtn);
+
+          $("#buy-container").append(buydiv, buyBtnDiv);
+        })
+        .catch((error) => {});
+    };
+
+    function buyProduct(orderId) {
+      const url = `http://localhost:8080/app/customer/product/buy/`;
+      fetch(url, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ orderId: orderId }),
+      })
+        .then((response) => {
+          if (response.ok) {
+            return response.text();
+          } else {
+            return response.json().then((errorText) => {
+              throw new Error(errorText.message); // Pass the error message to the catch block
+            });
+          }
+        })
+        .then((message) => {
+          swal(message);
+        })
+        .catch((error) => {
+          swal(error.message);
+          console.error("Error:", error.message);
+        });
+    }
+
+    function getJwt() {
+      const cookies = document.cookie; // Get all cookies as a single string
+      const cookieArray = cookies.split("; "); // Split the string into individual cookies
+
+      for (let cookie of cookieArray) {
+        if (cookie.startsWith("jwt=")) {
+          return cookie.substring(4); // Return the JWT value
+        }
+      }
+
+      return null;
+    }
+
+    const createOrder = (buyData) => {
+      console.log(buyData);
+
+      $.ajax({
+        url: `http://localhost:8080/app/customer/order/create/`,
+        data: JSON.stringify(buyData),
+        contentType: "application/json", // Specifies the content type
+        type: "POST", // HTTP method
+        dataType: "json", // Expected response format
+
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+        },
+
+        success: (response) => {
+          let orderItemId = response.orderItemId;
+
+          swal({
+            title: "Order Details",
+            text: `Product Name: ${response.product}\n
+    Price: ₹${response.price}\n
+    No. of Orders: ${response.quantity}\n
+    Total Price: ₹${response.quantity * response.price}`,
+            icon: "info",
+            buttons: true,
+          }).then((value) => {
+            if (value) {
+              if (
+                response.paymentType == "ONLINE" &&
+                response.paymentInfo.status == "created"
+              ) {
+                let options = {
+                  key: "rzp_test_Cs79N5EgNYUNXI",
+                  amount: response.paymentInfo.amount,
+                  currency: "INR",
+                  name: "Ecommerce Store",
+                  description: "Product Payment",
+                  image:
+                    "https://avatars.githubusercontent.com/u/101393436?v=4",
+
+                  order_id: response.paymentInfo.id,
+                  handler: function (response) {
+                    console.log(response.razorpay_payment_id);
+                    console.log(response.razorpay_order_id);
+                    console.log(response.razorpay_signature);
+                  },
+                  prefill: {
+                    name: "",
+                    email: "",
+                    contact: "",
+                  },
+
+                  notes: {
+                    address: "Razorpay Corporate Office",
+                  },
+                  theme: {
+                    color: "#3399cc",
+                  },
+                };
+
+                let rzp = new Razorpay(options);
+                rzp.on("payment.failed", function (response) {
+                  console.log(response.error.code);
+                  console.log(response.error.description);
+                  console.log(response.error.source);
+                  console.log(response.error.step);
+                  console.log(response.error.reason);
+                  console.log(response.error.metadata.order_id);
+                  console.log(response.error.metadata.payment_id);
+                });
+
+                rzp.open();
+              }
+
+              buyProduct(orderItemId);
+            }
+          });
+        },
+
+        error: (error) => {
+          console.error("Error creating order:", error);
+
+          // Handle error, show error message to the user
+        },
+      });
+    };
+  </script>
+</html>

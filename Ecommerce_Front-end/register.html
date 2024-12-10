@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Register</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css"
+      integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
+      crossorigin="anonymous"
+    />
+
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      form {
+        box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
+        width: 30%;
+      }
+      h4 {
+        text-align: center;
+      }
+      a:hover {
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <form id="registerForm" class="mx-auto mt-5 p-5">
+      <h4 class="mb-3">Register Here</h4>
+      <div class="form-group">
+        <label for="uname">Your Name</label>
+        <input type="text" class="form-control" id="uname" placeholder="Name" />
+      </div>
+      <div class="form-group">
+        <label for="ucity">Your City</label>
+        <input type="text" class="form-control" id="ucity" placeholder="City" />
+      </div>
+      <div class="form-group">
+        <label for="username">Email address</label>
+        <input
+          type="email"
+          class="form-control"
+          id="username"
+          aria-describedby="emailHelp"
+          placeholder="Enter email"
+        />
+        <small id="emailHelp" class="form-text text-muted"
+          >We'll never share your email with anyone else.</small
+        >
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input
+          type="password"
+          class="form-control"
+          id="password"
+          placeholder="Password"
+        />
+      </div>
+
+      <div class="form-group d-flex justify-content-end">
+        <p>already have account?</p>
+        <a href="login.html" class="ml-2">login here</a>
+      </div>
+      <button type="submit" class="btn btn-primary form-control">
+        Register
+      </button>
+    </form>
+  </body>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js"></script>
+  <script src="js/code.jquery.com_jquery-3.7.0.min.js"></script>
+  <script>
+    
+    const jwt = getJwt();
+    isAunthenticated();
+    function isAunthenticated() {
+      const url = "http://localhost:8080/app/customer/profile";
+      fetch(url, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+          "Content-Type": "application/json",
+        },
+      })
+        .then((response) => {
+          if (response.ok) {
+            window.location = 'profile.html'
+            
+          } else {
+            // Handle error case when user is not valid
+            return response.json().then((errorMessage) => {
+              throw new Error(errorMessage.message);
+            });
+          }
+        })
+        .catch((error) => {
+        
+          console.error(error);
+        });
+    };
+
+    $("#registerForm").on("submit", function (e) {
+      e.preventDefault();
+
+      const uname = $("#uname").val();
+      const ucity = $("#ucity").val();
+      const username = $("#username").val();
+      const password = $("#password").val();
+
+      // Create an object to send as the request body
+      const data = {
+        name: uname,
+        city: ucity,
+        email: username,
+        password: password,
+      };
+
+      fetch("http://localhost:8080/app/customer/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      })
+        .then((response) => {
+          if (response.ok) {
+            return response.text();
+          } else {
+            return response.json().then((errorMessage) => {
+              throw new Error(errorMessage.message); // Throw error with message from the backend
+            });
+          }
+        })
+        .then((data) => {
+          swal("You have Registered succefully!");
+
+          window.location.href = "/login.html"; // Redirect to login page
+        })
+        .catch((error) => {
+          swal(error.message);
+        });
+    });
+
+    function getJwt() {
+      const cookies = document.cookie; // Get all cookies as a single string
+      const cookieArray = cookies.split("; "); // Split the string into individual cookies
+
+      for (let cookie of cookieArray) {
+        if (cookie.startsWith("jwt=")) {
+          return cookie.substring(4); // Return the JWT value
+        }
+      }
+
+      return null;
+    }
+  </script>
+</html>

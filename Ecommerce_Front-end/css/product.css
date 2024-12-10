@@ -1,0 +1,85 @@
+#view-product{
+    
+    background-color: white;
+    width: 80%;
+    margin: auto;
+    margin-top: 60px;
+    display: flex;
+   
+}
+#pro-vw-imgdiv {
+    display: flex;
+    flex-direction: column;
+    position: fixed; 
+    width: 30%; 
+    left: 10%; 
+}
+
+#pro-vw-details {
+ 
+    position: relative; 
+    margin-left: 40%; 
+    width: 70%; 
+}
+#pro-vw-buydiv{
+    display: flex;
+    justify-content: space-between;
+}
+#pro-vw-buydiv :hover{
+    cursor:  pointer;
+}
+#pro-vw-cart{
+    font-weight: bold;
+    font-size: 13px;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 18px 60px;
+    background-color: #ff9f00;
+    color: white;
+}
+#pro-vw-buy{
+    font-weight: bold;
+    font-size: 13px;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 18px 90px;
+    background-color: #fb641b;
+    color: white;
+}
+#product-desc-div{
+   
+    display: flex;
+    width: 70%;
+}
+#review-heading{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: white;
+}
+.review-item{
+    margin-bottom: 5px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.rating-status{
+    display: flex;
+    align-items: center;
+    margin-bottom: -15px;
+    
+}
+.reviewer-info{
+    margin-top: -15px;
+    display: flex;
+    font-size: 13px;
+    color: #979aab;
+}
+.page{
+    margin-left: 0px;
+    
+}

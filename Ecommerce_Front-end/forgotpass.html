@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reset Password</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css"
+      integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
+      crossorigin="anonymous"
+    />
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      #forgotpass {
+        box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
+        width: 30%;
+      }
+      h4 {
+        text-align: center;
+      }
+      a:hover {
+        text-decoration: none;
+      }
+      #useremail {
+      }
+    </style>
+  </head>
+  <body>
+    <div id="forgotpass" class="mx-auto p-5 mt-5">
+      <h4 class="mb-3">Reset Password</h4>
+
+      <div class="form-group">
+        <!-- <label for="username">Enter your email address</label> -->
+        <input
+          type="email"
+          class="form-control"
+          id="useremail"
+          aria-describedby="emailHelp"
+          placeholder="Enter your email address"
+        />
+      </div>
+
+      <button type="submit" class="btn btn-primary form-control" id="submit">
+        REQUEST OTP
+      </button>
+    </div>
+  </body>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js"></script>
+  <script src="js/code.jquery.com_jquery-3.7.0.min.js"></script>
+  <script>
+    $("#submit").on("click", function () {
+      const data = {
+        email: $("#useremail").val(),
+      };
+
+      fetch("http://localhost:8080/app/forgot-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      })
+        .then((response) => {
+          if (!response.ok) {
+            return response.json().then((error) => {
+              throw new Error(error.message);
+            });
+          } else {
+            return response.text();
+          }
+        })
+        .then((msg) => {
+          swal(msg);
+
+          $("#submit").remove();
+          let formGroup1 = $("<div></div>").addClass("form-group");
+          //   <input
+          //   type="email"
+          //   class="form-control"
+          //   id="useremail"
+          //   aria-describedby="emailHelp"
+          //   placeholder="Enter your email address"
+          // />
+
+          let newPassword = $("<input>").attr({
+            type: "password",
+            class: "form-control",
+            id: "newpassword",
+            placeholder: "Enter new password",
+          });
+
+          let formGroup2 = $("<div></div>").addClass("form-group");
+          let otp = $("<input>").attr({
+            type: "text",
+            class: "form-control",
+            id: "otp",
+            placeholder: "Enter OTP",
+          });
+
+          let formGroup3 = $("<div></div>").addClass("form-group");
+
+          let resetPasswordButton = $(
+            "<button>VERIFY AND RESET PASSWORD</button>"
+          )
+            .attr({
+              type: "submit",
+              class: "btn btn-primary form-control",
+              id: "resetPasswordBtn",
+            })
+            .on("click", function () {
+              const resetPasswordRequesetData = {
+                email: $('#useremail').val(),
+                otp: $('#otp').val(),
+                newPassword: $('#newpassword').val()
+              }
+              resetPasswordRequest(resetPasswordRequesetData);
+            });
+
+          formGroup1.append(newPassword);
+          formGroup2.append(otp);
+          formGroup3.append(resetPasswordButton);
+          $("#forgotpass").append(formGroup1, formGroup2, formGroup3);
+        })
+        .catch((error) => {
+          swal(error.message);
+          console.error("Error:", error.message);
+        });
+    });
+
+    function resetPasswordRequest(data) {
+      fetch('http://localhost:8080/app/reset-password', {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      })
+        .then((response) => {
+          if (!response.ok) {
+            return response.json().then((error) => {
+              throw new Error(error.message);
+            });
+          } else {
+            return response.text();
+          }
+        })
+        .then((msg) => {
+          swal(msg);
+        })
+        .catch((error) => {
+          swal(error.message);
+          console.error("Error:", error.message);
+        });
+    }
+  </script>
+</html>

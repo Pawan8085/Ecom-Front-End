@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Review</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"
+    />
+
+    <style>
+      #product-div {
+        width: 50%;
+        margin: auto;
+        height: 80px;
+        background-color: white;
+        margin-top: 60px;
+        padding: 5px 20px;
+        display: flex;
+      }
+      #product-img {
+        height: 100%;
+      }
+      #user-review-div {
+        width: 50%;
+        margin: auto;
+        margin-top: -19px;
+        background-color: white;
+        padding-left: 20px;
+        padding-right: 20px;
+        height: 470px;
+      }
+      #star-div {
+        margin-top: -50px;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        border-bottom: 1px solid #ddd;
+      }
+      #product-rating {
+        padding-top: 20px;
+      }
+      .star {
+        font-size: 30px;
+        margin-right: 10px;
+        cursor: pointer;
+      }
+      .selected {
+        color: #ffe11b;
+      }
+      #ratingstatus {
+        color: gray;
+      }
+      #product-review {
+        width: 100%;
+        height: 200px;
+        resize: none;
+        border: 1px solid #ddd;
+        box-sizing: border-box;
+        font-size: 16px;
+        padding: 10px;
+        outline: none;
+      }
+
+      #review-submit-btn {
+        float: right;
+        color: white;
+        background-color: #fb641b;
+        border: none;
+        padding: 20px 100px;
+        cursor: pointer;
+        font-size: 16px;
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="myheader">
+      <div id="appname">E-Commerce Store</div>
+      <input type="text" id="search" placeholder="Search Product" />
+      <div id="cartsection">
+        <div id="account">
+          <span class="material-symbols-outlined"> account_circle </span>
+          <a id="username" href="login.html">Login</a>
+        </div>
+
+        <span class="material-symbols-outlined" id="cart"> shopping_cart </span>
+      </div>
+    </div>
+    <hr />
+
+    <div id="product-div"></div>
+    <div id="user-review-div"></div>
+  </body>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js"></script>
+  <script src="js/code.jquery.com_jquery-3.7.0.min.js"></script>
+  <script>
+    const jwt = getJwt();
+    userProfile();
+    function userProfile() {
+      const url = "http://localhost:8080/app/customer/profile";
+      fetch(url, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${jwt}`, // Add the JWT token in Authorization header
+          "Content-Type": "application/json", // Adjust content type as per API
+        },
+      })
+        .then((response) => {
+          if (response.ok) {
+            return response.json();
+          } else {
+            throw new Error("Failed to fetch data");
+          }
+        })
+        .then((customer) => {
+          $("#username").text(customer.name);
+          $("#username").attr("href", "profile.html");
+        })
+        .catch((error) => {
+          console.error("Error:", error.message);
+          $("#username").text("Login");
+          $("#username").attr("href", "login.html");
+          window.location = "login.html";
+        });
+    }
+
+    window.onload = function () {
+      // Extract the productId from the URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const productId = urlParams.get("pId");
+
+      fetch(`http://localhost:8080/app/search/product/${productId}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+        .then((response) => {
+          if (response.ok) {
+            return response.json();
+          } else {
+            throw new Error("Failed to fetch data");
+          }
+        })
+        .then((product) => {
+          console.log(product);
+          let productDiv = $("#product-div");
+          let productImage = $("<img>").attr({
+            src: product.image,
+            id: "product-img",
+          });
+
+          let productDetails = $("<div></div>");
+          if (product.productName.length >= 20) {
+            product.productName = product.productName.substring(0, 20) + "...";
+          }
+          let productName = $("<p></p>").text(product.productName);
+          let ratingDiv = $("<div></div>").addClass("rating-div");
+          let rating = $("<span></span>")
+            .text(`${product.rating}★`)
+            .addClass("rating-stars");
+          let ratingCount = $("<span></span>")
+            .text(`(${product.ratingCount})`)
+            .addClass("rating-count");
+          ratingDiv.append(rating, ratingCount);
+          productDetails.append(productName, ratingDiv);
+          productDiv.append(productImage, productDetails);
+          console.log(product);
+
+          let review = $("#user-review-div");
+
+          let rateProduct = $("<h5>Rate this Product</h4>")
+            .attr("id", "product-rating")
+            .css("font-size", "15px");
+          review.append(rateProduct);
+
+          let stardiv = $("<div></div>").attr("id", "star-div");
+          let uesrRating = 0;
+          for (let i = 1; i <= 5; ++i) {
+            let s = $("<p>☆</p>")
+              .addClass("star")
+              .attr("id", `star${i}`)
+              .on("click", function () {
+                uesrRating = i;
+                for (let j = 1; j <= i; ++j) {
+                  $(`#star${j}`).addClass("selected");
+                  
+                }
+                for (let j = i + 1; j <= 5; ++j) {
+                  $(`#star${j}`).removeClass("selected");
+                }
+                $("#ratingstatus").text(getRatingStatus(i));
+              });
+            stardiv.append(s);
+          }
+
+          stardiv.append($('<p id="ratingstatus"></p>'));
+
+          let userReview = $("<div></div>").attr("id", "user-review");
+          let reviewProduct = $("<h5>Review this product</h5>").css(
+            "font-size",
+            "15px"
+          );
+          let description = $("<textarea></textarea>").attr({
+            id: "product-review",
+            placeholder: "Description",
+          });
+          userReview.append(reviewProduct, description);
+
+          let reviewSubmitBtn = $("<button>SUBMIT</button>")
+            .attr("id", "review-submit-btn")
+            .on("click", function () {
+              let review = {
+                "rating" : uesrRating,
+                "description" : $('#product-review').val()
+              }
+              if(uesrRating == 0){
+                swal('Select a valid rating!');
+                return;
+              }else{
+                addReview(product.pid, review);
+              }
+              
+            });
+          review.append(stardiv, userReview, reviewSubmitBtn);
+        })
+        .catch((error) => {});
+    };
+
+    function addReview(productId, review) {
+      fetch(`http://localhost:8080/app/customer/product/rating/${productId}`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(review)
+      })
+        .then((response) => {
+          if (response.ok) {
+            return response.text();
+          } else {
+            return response.json().then((errorText) => {
+              throw new Error(errorText.message); // Pass the error message to the catch block
+            });
+          }
+        })
+        .then((message) => {
+          swal(message);
+        })
+        .catch((error) => {
+          swal(error.message);
+          console.error("Error:", error.message);
+        });
+    }
+
+    function getRatingStatus(rating) {
+      switch (rating) {
+        case 1:
+          return "Very Bad";
+        case 2:
+          return "Bad";
+        case 3:
+          return "Good";
+        case 4:
+          return "Very Good";
+        case 5:
+          return "Excellent";
+        default:
+          return "";
+      }
+    }
+
+    function getJwt() {
+      const cookies = document.cookie; // Get all cookies as a single string
+      const cookieArray = cookies.split("; "); // Split the string into individual cookies
+
+      for (let cookie of cookieArray) {
+        if (cookie.startsWith("jwt=")) {
+          return cookie.substring(4); // Return the JWT value
+        }
+      }
+
+      return null;
+    }
+  </script>
+</html>
