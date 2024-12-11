@@ -91,6 +91,11 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js"></script>
   <script src="js/code.jquery.com_jquery-3.7.0.min.js"></script>
   <script>
+
+    $('#appname').on('click', function(){
+      window.location = 'index.html';
+    })
+    
     const jwt = getJwt();
     userProfile();
     function userProfile() {

@@ -27,6 +27,7 @@ body {
     font-size: 20px;
     margin-left: 10%;
     /* color: white; */
+    cursor: pointer;
 }
 #search{
     width: 500px;
@@ -405,7 +406,7 @@ footer {
     position: relative;
     left: 290px;
     min-height: 100vh; /* Ensure it is at least 100vh */
-    height: auto; /
+    height: auto; 
    
 }
 
