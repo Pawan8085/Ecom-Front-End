@@ -72,9 +72,9 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js"></script>
   <script src="js/code.jquery.com_jquery-3.7.0.min.js"></script>
   <script>
-    $('#appname').on('click', function(){
-      window.location = 'index.html';
-    })
+    $("#appname").on("click", function () {
+      window.location = "index.html";
+    });
     // get jwt key
     const jwt = getJwt();
 
@@ -83,8 +83,8 @@
       fetch(url, {
         method: "GET",
         headers: {
-          Authorization: `Bearer ${jwt}`, // Add the JWT token in Authorization header
-          "Content-Type": "application/json", // Adjust content type as per API
+          Authorization: `Bearer ${jwt}`, 
+          
         },
       })
         .then((response) => {
@@ -103,10 +103,6 @@
           window.location = "login.html";
         });
     };
-    // if (jwt != null) {
-    //   document.getElementById("uname").innerText =
-    //     localStorage.getItem("username");
-    // }
 
     document.getElementById("password").addEventListener("click", function () {
       addPasswordChangeOption();
@@ -149,27 +145,25 @@
     function appendCartItems() {
       const url = "http://localhost:8080/app/customer/cart";
       fetch(url, {
-        method: "GET", // or POST if needed
+        method: "GET", 
         headers: {
-          Authorization: `Bearer ${jwt}`, // Add the JWT token in Authorization header
-          "Content-Type": "application/json", // Adjust content type as per API
+          Authorization: `Bearer ${jwt}`, 
         },
       })
         .then((response) => {
           if (response.ok) {
-            return response.json(); // Assuming the API returns JSON data
+            return response.json(); 
           } else {
             throw new Error("Failed to fetch cart data");
           }
         })
         .then((data) => {
-          console.log("Cart Data:", data); // Handle
+          console.log("Cart Data:", data); 
 
           data.forEach((c) => {
             // Create a container for the cart item
             let cart = $("<div></div>").addClass("cart-item"); // Add a class for styling
 
-            // Left side - Image and quantity controls
             let leftDiv = $("<div></div>").addClass("left-section");
             let img_div = $("<div></div>").addClass("cart-img-div");
             let img = $("<img>").attr("src", c.image).addClass("cart-image"); // Add image class
@@ -179,12 +173,12 @@
             let decreaseBtn = $("<button>-</button>")
               .addClass("quantity-btn")
               .on("click", function () {
-                updateQuantity(c.quantity, c.cartItemId, "decrease", quantity); // Pass quantity element
+                updateQuantity(c.quantity, c.cartItemId, "decrease", quantity);
               });
 
             let quantity = $("<span></span>")
               .addClass("item-quantity")
-              .text(c.quantity); // Assuming there's a quantity field in c
+              .text(c.quantity); 
 
             let increaseBtn = $("<button>+</button>")
               .addClass("quantity-btn")
@@ -192,11 +186,9 @@
                 updateQuantity(c.quantity, c.cartItemId, "increase", quantity); // Pass quantity element
               });
 
-            // Append image and quantity controls to the left section
             quantityDiv.append(decreaseBtn, quantity, increaseBtn);
             leftDiv.append(img_div, quantityDiv);
 
-            // Right side - Product price and action buttons
             let rightDiv = $("<div></div>").addClass("right-section");
 
             let productPriceDiv = $("<div></div>").addClass("cart-price-div");
@@ -213,16 +205,42 @@
                   "_blank"
                 );
               });
-            let removeBtn = $("<h4>Remove</h4>").addClass("action-btn");
+            let removeBtn = $("<h4>Remove</h4>")
+              .addClass("action-btn")
+              .on("click", function () {
+                swal({
+                  title: "Remove Item",
+                  text: "Are you sure you want to remove this item?",
+                  buttons: {
+                    cancel: {
+                      text: "Cancel",
+                      value: false,
+                      visible: true,
+                      className: "btn-cancel",
+                      closeModal: true,
+                    },
+                    confirm: {
+                      text: "Remove",
+                      value: true,
+                      visible: true,
+                      className: "btn-confirm",
+                      closeModal: true,
+                    },
+                  },
+                }).then((willDelete) => {
+                  if (willDelete) {
+                    removeCartItem(c.cartItemId);
+                    
+                  }
+                });
+              });
 
-            // Append price and action buttons to the right section
+           
             actionDiv.append(buyBtn, removeBtn);
             rightDiv.append(productPriceDiv, actionDiv);
 
-            // Append both left and right sections to the cart item
             cart.append(leftDiv, rightDiv);
 
-            // Append the cart item to the cart data container
             $("#cartdata").append(cart);
           });
         })
@@ -239,19 +257,17 @@
     ) {
       let actionType = action === "increase" ? 1 : 0;
 
-      // API URL with cart item ID and action type
       let apiUrl = `http://localhost:8080/app/customer/cart/${cartItemId}?type=${actionType}`;
 
-      // Make the GET request to update the quantity on the server
       fetch(apiUrl, {
         method: "PUT",
         headers: {
-          Authorization: `Bearer ${jwt}`, // Include JWT if needed
+          Authorization: `Bearer ${jwt}`, 
           "Content-Type": "application/json",
         },
-        credentials: "include", // Include cookies if needed
+        credentials: "include", 
       })
-        .then((response) => response.json()) // Assuming API returns JSON with updated quantity
+        .then((response) => response.json()) 
         .then((data) => {
           // Update the quantity in the UI
           quantityElement.text(data);
@@ -261,15 +277,51 @@
         });
     }
 
+    function removeCartItem(cartItemId) {
+      const url = `http://localhost:8080/app/customer/cart/${cartItemId}`;
+      fetch(url, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+        },
+      })
+        .then((response) => {
+          if (response.ok) {
+            return response.text();
+          } else {
+            throw new Error("Error deleting item");
+          }
+        })
+        .then((message) => {
+          setTimeout(() => {
+            swal({
+              text: message,
+              timer: 2500,
+              buttons: false,
+            });
+          }, 1000);
+          $('#cartitems').click();
+        })
+        .catch((error) => {
+          setTimeout(() => {
+            swal({
+              text: error.message,
+              timer: 2500,
+              buttons: false,
+            });
+          }, 1000);
+          console.error("Error deleting item:", error.message);
+        });
+    }
+
     function appendOrderItems() {
       const url = "http://localhost:8080/app/customer/orders";
       fetch(url, {
-        method: "GET", // or POST if needed
+        method: "GET",
         headers: {
-          Authorization: `Bearer ${jwt}`, // Add the JWT token in Authorization header
-          "Content-Type": "application/json", // Adjust content type as per API
+          Authorization: `Bearer ${jwt}`, 
         },
-        credentials: "include", // Include cookies if required
+        credentials: "include", 
       })
         .then((response) => {
           if (response.ok) {
@@ -317,12 +369,11 @@
     function addPasswordChangeOption() {
       $("#datas").empty();
 
-      // Create an h2 element with centered text
       let h2 = $("<h2></h2>")
         .text("Change Password")
         .css("text-align", "center");
 
-      // Create a form element
+
       let form = $("<form></form>").attr("id", "passwordform");
 
       // Create input fields for old and new passwords
@@ -344,7 +395,7 @@
         .on("click", function (event) {
           event.preventDefault();
 
-          // Get values using jQuery
+        
           const oldpass = $(".oldpass").val();
 
           const data = {
@@ -361,16 +412,16 @@
           })
             .then((response) => {
               if (!response.ok) {
-                // If the response is not OK, get the error message from the response body
+              
                 return response.json().then((errorText) => {
-                  throw new Error(errorText.message); // Pass the error message to the catch block
+                  throw new Error(errorText.message); 
                 });
               }
-              // If response is OK, read the response text (the success message)
+              
               return response.text();
             })
             .then((message) => {
-              // Handle success: Display message
+              
               swal(message);
               $("#submit-btn").remove();
               let np = $('<input type="password"></input>')
@@ -399,16 +450,13 @@
               $("#passwordform").append(np, otpInput, verifyBtn);
             })
             .catch((error) => {
-              // Handle errors: Display error message
+             
               swal(error.message);
               console.error("Error:", error.message);
             });
         });
 
-      // Append input fields and button to the form
       form.append(op, submitBtn);
-
-      // Append h2 and form to the "datas" element
       $("#datas").append(h2, form);
     }
     function verifyAndChangePassword(data) {
@@ -422,21 +470,21 @@
       })
         .then((response) => {
           if (!response.ok) {
-            // If the response is not OK, get the error message from the response body
+          
             return response.json().then((errorText) => {
-              throw new Error(errorText.message); // Pass the error message to the catch block
+              throw new Error(errorText.message); 
             });
           }
-          // If response is OK, read the response text (the success message)
+         
           return response.text();
         })
         .then((message) => {
-          // Handle success: Display message
+          
           swal(message);
           addPasswordChangeOption();
         })
         .catch((error) => {
-          // Handle errors: Display error message
+         
           swal(error.message);
           console.error("Error:", error.message);
         });
@@ -450,16 +498,15 @@
       document.cookie = "jwt=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 
       window.location = "login.html";
-      
     }
 
     function getJwt() {
-      const cookies = document.cookie; // Get all cookies as a single string
-      const cookieArray = cookies.split("; "); // Split the string into individual cookies
+      const cookies = document.cookie; 
+      const cookieArray = cookies.split("; "); 
 
       for (let cookie of cookieArray) {
         if (cookie.startsWith("jwt=")) {
-          return cookie.substring(4); // Return the JWT value
+          return cookie.substring(4); 
         }
       }
 

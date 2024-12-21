@@ -1,5 +1,8 @@
 const jwt = getJwt();
 
+
+
+  
 window.onload = function(){
         
     const url = "http://localhost:8080/app/customer/profile";
