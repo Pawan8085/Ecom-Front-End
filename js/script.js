@@ -1,6 +1,45 @@
 const jwt = getJwt();
 
 
+function fetchCategories(){
+    const url = `http://localhost:8080/app/category`
+    fetch(url, {
+        method: "GET"
+    }).then((response) =>{
+        if(response.ok){
+            return response.json()
+        }else {
+            throw new Error("Failed to fetch data");
+        }
+    }).then((category)=>{
+        console.log(category);
+        appendCategories(category)
+    }).catch((error) =>{
+        
+        console.error("Error:", error.message);
+    })
+}
+
+function appendCategories(categories){
+
+    categories.forEach(category =>{
+        let catDiv = $('<div></div>').addClass('mycat').on('click', function(){
+            fetchData(`http://localhost:8080/app/category/product/${category.cid}?page=0`)
+           
+            $('#categories').css('margin-top', "0");
+        });
+        console.log(category.image)
+        let img = $('<img>')
+            .attr('src', category.image)
+            .attr('alt', category.name)     
+            .addClass('category-image')
+
+        let categoryName = $('<p></p>').text(category.category);
+         catDiv.append(img, categoryName);   
+        $('#category').append(catDiv);
+
+    })
+}
 
   
 window.onload = function(){
@@ -31,6 +70,9 @@ window.onload = function(){
         $('#username').text('Login');
         $('#username').attr('href' , 'login.html');
       });
+
+      // load categories
+      fetchCategories();
   }
 let currentFilter = ''
 let filterValues = {
@@ -82,6 +124,8 @@ function appendData(data) {
    // clear previous content
    $("#resultdiv").empty();
    $('#message').empty();
+   $('#categories').empty();
+   $('#categories').css('margin-top', "0");
     if(data.data.length==0)  {
        
         $('#message').text('Result not found!').css({
