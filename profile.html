@@ -83,8 +83,7 @@
       fetch(url, {
         method: "GET",
         headers: {
-          Authorization: `Bearer ${jwt}`, 
-          
+          Authorization: `Bearer ${jwt}`,
         },
       })
         .then((response) => {
@@ -145,20 +144,20 @@
     function appendCartItems() {
       const url = "http://localhost:8080/app/customer/cart";
       fetch(url, {
-        method: "GET", 
+        method: "GET",
         headers: {
-          Authorization: `Bearer ${jwt}`, 
+          Authorization: `Bearer ${jwt}`,
         },
       })
         .then((response) => {
           if (response.ok) {
-            return response.json(); 
+            return response.json();
           } else {
             throw new Error("Failed to fetch cart data");
           }
         })
         .then((data) => {
-          console.log("Cart Data:", data); 
+          console.log("Cart Data:", data);
 
           data.forEach((c) => {
             // Create a container for the cart item
@@ -178,7 +177,7 @@
 
             let quantity = $("<span></span>")
               .addClass("item-quantity")
-              .text(c.quantity); 
+              .text(c.quantity);
 
             let increaseBtn = $("<button>+</button>")
               .addClass("quantity-btn")
@@ -230,12 +229,10 @@
                 }).then((willDelete) => {
                   if (willDelete) {
                     removeCartItem(c.cartItemId);
-                    
                   }
                 });
               });
 
-           
             actionDiv.append(buyBtn, removeBtn);
             rightDiv.append(productPriceDiv, actionDiv);
 
@@ -262,12 +259,12 @@
       fetch(apiUrl, {
         method: "PUT",
         headers: {
-          Authorization: `Bearer ${jwt}`, 
+          Authorization: `Bearer ${jwt}`,
           "Content-Type": "application/json",
         },
-        credentials: "include", 
+        credentials: "include",
       })
-        .then((response) => response.json()) 
+        .then((response) => response.json())
         .then((data) => {
           // Update the quantity in the UI
           quantityElement.text(data);
@@ -300,7 +297,7 @@
               buttons: false,
             });
           }, 1000);
-          $('#cartitems').click();
+          $("#cartitems").click();
         })
         .catch((error) => {
           setTimeout(() => {
@@ -319,9 +316,9 @@
       fetch(url, {
         method: "GET",
         headers: {
-          Authorization: `Bearer ${jwt}`, 
+          Authorization: `Bearer ${jwt}`,
         },
-        credentials: "include", 
+        credentials: "include",
       })
         .then((response) => {
           if (response.ok) {
@@ -373,7 +370,6 @@
         .text("Change Password")
         .css("text-align", "center");
 
-
       let form = $("<form></form>").attr("id", "passwordform");
 
       // Create input fields for old and new passwords
@@ -395,12 +391,27 @@
         .on("click", function (event) {
           event.preventDefault();
 
-        
           const oldpass = $(".oldpass").val();
 
           const data = {
             oldPassword: oldpass,
           };
+
+          swal({
+            text: "We are sending an OTP to your email. Please wait.",
+            buttons: false,
+            closeOnEsc: false,
+            closeOnClickOutside: false,
+            content: {
+              element: "img",
+              attributes: {
+                src: "https://media.tenor.com/On7kvXhzml4AAAAj/loading-gif.gif",
+                alt: "Loading...",
+                width: "60",
+                height: "60",
+              },
+            },
+          });
 
           fetch("http://localhost:8080/app/customer/change-password", {
             method: "POST",
@@ -412,16 +423,15 @@
           })
             .then((response) => {
               if (!response.ok) {
-              
                 return response.json().then((errorText) => {
-                  throw new Error(errorText.message); 
+                  throw new Error(errorText.message);
                 });
               }
-              
+
               return response.text();
             })
             .then((message) => {
-              
+              swal.close();
               swal(message);
               $("#submit-btn").remove();
               let np = $('<input type="password"></input>')
@@ -450,7 +460,6 @@
               $("#passwordform").append(np, otpInput, verifyBtn);
             })
             .catch((error) => {
-             
               swal(error.message);
               console.error("Error:", error.message);
             });
@@ -470,21 +479,18 @@
       })
         .then((response) => {
           if (!response.ok) {
-          
             return response.json().then((errorText) => {
-              throw new Error(errorText.message); 
+              throw new Error(errorText.message);
             });
           }
-         
+
           return response.text();
         })
         .then((message) => {
-          
           swal(message);
           addPasswordChangeOption();
         })
         .catch((error) => {
-         
           swal(error.message);
           console.error("Error:", error.message);
         });
@@ -501,12 +507,12 @@
     }
 
     function getJwt() {
-      const cookies = document.cookie; 
-      const cookieArray = cookies.split("; "); 
+      const cookies = document.cookie;
+      const cookieArray = cookies.split("; ");
 
       for (let cookie of cookieArray) {
         if (cookie.startsWith("jwt=")) {
-          return cookie.substring(4); 
+          return cookie.substring(4);
         }
       }
 

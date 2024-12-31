@@ -57,6 +57,23 @@
         email: $("#useremail").val(),
       };
 
+      // Show loading message
+      swal({
+        text: "We are sending an OTP to your email. Please wait.",
+        buttons: false,
+        closeOnEsc: false,
+        closeOnClickOutside: false,
+        content: {
+          element: "img",
+          attributes: {
+            src: "https://media.tenor.com/On7kvXhzml4AAAAj/loading-gif.gif",
+            alt: "Loading...",
+            width: "60",
+            height: "60",
+          },
+        },
+      });
+
       fetch("http://localhost:8080/app/forgot-password", {
         method: "POST",
         headers: {
@@ -74,17 +91,11 @@
           }
         })
         .then((msg) => {
+          swal.close(); // Close the loading popup
           swal(msg);
 
           $("#submit").remove();
           let formGroup1 = $("<div></div>").addClass("form-group");
-          //   <input
-          //   type="email"
-          //   class="form-control"
-          //   id="useremail"
-          //   aria-describedby="emailHelp"
-          //   placeholder="Enter your email address"
-          // />
 
           let newPassword = $("<input>").attr({
             type: "password",
@@ -113,10 +124,10 @@
             })
             .on("click", function () {
               const resetPasswordRequesetData = {
-                email: $('#useremail').val(),
-                otp: $('#otp').val(),
-                newPassword: $('#newpassword').val()
-              }
+                email: $("#useremail").val(),
+                otp: $("#otp").val(),
+                newPassword: $("#newpassword").val(),
+              };
               resetPasswordRequest(resetPasswordRequesetData);
             });
 
@@ -126,13 +137,14 @@
           $("#forgotpass").append(formGroup1, formGroup2, formGroup3);
         })
         .catch((error) => {
+          swal.close(); // Close the loading popup
           swal(error.message);
           console.error("Error:", error.message);
         });
     });
 
     function resetPasswordRequest(data) {
-      fetch('http://localhost:8080/app/reset-password', {
+      fetch("http://localhost:8080/app/reset-password", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
