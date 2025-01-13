@@ -114,7 +114,52 @@
       h2.innerText = "Update Profile here";
 
       document.getElementById("datas").append(h2);
+      customerProfile();
     });
+
+    function customerProfile() {
+      // Create the main customer profile container
+      let customerProfile = $("<div></div>").addClass("customerProfile");
+
+      // Create the name display section
+      let nameDiv = $("<div></div>").addClass("nameDiv");
+
+      // Create the name edit section with a heading and edit button
+      let nameEditSection = $("<div></div>").addClass("nameEdit");
+      let nameHeading = $("<h5></h5>")
+        .text("Your Name")
+        .attr("id", "nameHeading");
+      let nameEdit = $("<p></p>")
+        .text("Edit")
+        .attr("id", "editName")
+        .css("cursor", "pointer").on('click', function(){
+            let saveButton = $("<button></button>")
+          .text("Save")
+          .attr("id", "saveName");
+
+          $('.nameInput').append(saveButton)
+        });
+
+      // Append the heading and edit button to the edit section
+      nameEditSection.append(nameHeading, nameEdit);
+
+      // Create the name input section (initially hidden)
+      let nameInputSection = $("<div></div>").addClass("nameInput").hide();
+      let nameInput = $("<input>").attr({
+        type: "text",
+        id: "nameInput",
+        value: "Pavan",
+      });
+      
+
+      // Append the input and save button to the input section
+      nameInputSection.append(nameInput, saveButton);
+
+      // Append the edit section and input section to the name display section
+      nameDiv.append(nameEditSection, nameInputSection);
+
+    
+    }
 
     $("#orders").on("click", function () {
       $("#datas").empty();

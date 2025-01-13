@@ -119,6 +119,22 @@
         password: password,
       };
 
+      swal({
+        text: "Wait we are verifying your details",
+        buttons: false,
+        closeOnEsc: false,
+        closeOnClickOutside: false,
+        content: {
+          element: "img",
+          attributes: {
+            src: "https://media.tenor.com/On7kvXhzml4AAAAj/loading-gif.gif",
+            alt: "Loading...",
+            width: "60",
+            height: "60",
+          },
+        },
+      });
+
       fetch("http://localhost:8080/app/customer/register", {
         method: "POST",
         headers: {
@@ -136,6 +152,7 @@
           }
         })
         .then((data) => {
+          swal.close(); // close the pop up
           swal("You have Registered succefully!");
 
           window.location.href = "/login.html"; // Redirect to login page

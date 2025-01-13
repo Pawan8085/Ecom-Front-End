@@ -1,3 +1,6 @@
+$('#appname').on('click', function(){
+    window.location = 'index.html';
+  })
 const jwt = getJwt();
 
 

@@ -466,13 +466,23 @@ footer {
 }
 
 .cart-img-div {
-    margin-right: 15px; 
+    width: 150px; 
+    height: 110px; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 15px;
+    overflow: hidden; 
+     
 }
 
 .cart-image {
-   width: 200px;
-
+    width: 150px; 
+    height: 110px; 
+    object-fit: cover; 
 }
+
+
 
 /* Quantity controls */
 .quantity-section {
