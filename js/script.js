@@ -159,7 +159,7 @@ function appendData(data) {
     });
     let max = $("<input>").attr({
         'id' : 'max-price',
-        'placeholder': 'Min Price',
+        'placeholder': 'Max Price',
         'type': 'number',
     });
 

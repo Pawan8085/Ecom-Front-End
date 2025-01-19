@@ -4,6 +4,45 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="css/style.css" />
+    <style>
+      .customerProfile {
+        width: 90%;
+      }
+      .updateDiv {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+      .editDiv {
+        display: flex;
+        align-items: center;
+      }
+      .editbtn {
+        color: blue;
+        cursor: pointer;
+        margin-left: 10px;
+      }
+      .heading {
+        font-size: 18px;
+      }
+      .inputDiv {
+        /* border: 1px solid black; */
+      }
+      .u_input {
+        width: 28%;
+        padding: 12px 5px;
+      }
+      .savebtn {
+        border: none;
+        font-size: 17px;
+        font-weight: 500;
+        margin-left: 10px;
+        cursor: pointer;
+        padding: 11px 30px;
+        color: white;
+        background: #2874f0;
+      }
+    </style>
     <link
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"
@@ -79,7 +118,12 @@
     const jwt = getJwt();
 
     window.onload = function () {
+      getCustomerProfile();
+    };
+
+    function getCustomerProfile() {
       const url = "http://localhost:8080/app/customer/profile";
+
       fetch(url, {
         method: "GET",
         headers: {
@@ -87,21 +131,24 @@
         },
       })
         .then((response) => {
-          if (response.ok) {
-            return response.json();
-          } else {
+          if (!response.ok) {
             throw new Error("Failed to fetch data");
           }
+          return response.json();
         })
         .then((customer) => {
+          // Update DOM elements with customer data
           $("#uname").text(customer.name);
           $("#username").text(customer.name);
+          $("#uemail").val(customer.email);
+          $("#u_name").val(customer.name);
+          $("#ucity").val(customer.city);
         })
         .catch((error) => {
           console.error("Error:", error.message);
           window.location = "login.html";
         });
-    };
+    }
 
     document.getElementById("password").addEventListener("click", function () {
       addPasswordChangeOption();
@@ -110,56 +157,188 @@
     $("#update").on("click", function () {
       // $('#datas').css('height', '100vh');
       document.getElementById("datas").innerHTML = null;
-      let h2 = document.createElement("h2");
-      h2.innerText = "Update Profile here";
 
-      document.getElementById("datas").append(h2);
+      // document.getElementById("datas").append(h2);
       customerProfile();
+      getCustomerProfile();
     });
+
+    function updateProfile(customer) {
+      console.log(customer);
+      const url = "http://localhost:8080/app/customer/update";
+      fetch(url, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(customer),
+      })
+        .then((response) => {
+          if (!response.ok) {
+            return response.json().then((errorText) => {
+              throw new Error(errorText.message);
+            });
+          }
+
+          return response.text();
+        })
+        .then((message) => {
+          setTimeout(() => {
+            swal({
+              text: message,
+              timer: 2500,
+              buttons: false,
+            });
+          }, 1000);
+          $("#update").click();
+        })
+        .catch((error) => {
+          console.error("Error:", error.message);
+          setTimeout(() => {
+            swal({
+              text: error.message,
+              timer: 2500,
+              buttons: false,
+            });
+          }, 1000);
+        });
+    }
 
     function customerProfile() {
       // Create the main customer profile container
       let customerProfile = $("<div></div>").addClass("customerProfile");
+      let information = $("<h3>Your Personal Informations.</h3>");
 
-      // Create the name display section
-      let nameDiv = $("<div></div>").addClass("nameDiv");
+      customerProfile.append(information);
 
-      // Create the name edit section with a heading and edit button
-      let nameEditSection = $("<div></div>").addClass("nameEdit");
-      let nameHeading = $("<h5></h5>")
-        .text("Your Name")
-        .attr("id", "nameHeading");
-      let nameEdit = $("<p></p>")
-        .text("Edit")
-        .attr("id", "editName")
-        .css("cursor", "pointer").on('click', function(){
-            let saveButton = $("<button></button>")
-          .text("Save")
-          .attr("id", "saveName");
+      let updateDiv = $("<div></div>").addClass("updateDiv");
+      let emailEditDiv = $("<div></div>").addClass("editDiv");
+      let emailHeading = $("<p>Email Address</p>").addClass("heading");
+      let emailEdit = $("<p>Edit</p>")
+        .addClass("emailEdit")
+        .addClass("editbtn")
+        .on("click", function () {
+          let value = $(".emailEdit").text();
+          if (value === "Edit") {
+            $(".emailEdit").text("Cancel");
 
-          $('.nameInput').append(saveButton)
+            $("#uemail").prop("disabled", false);
+            let saveBtn = $("<button>SAVE</button>")
+              .addClass("savebtn")
+              .attr("id", "saveemail")
+              .on("click", function () {
+                let email = $("#uemail").val();
+                $(".emailEdit").click();
+              });
+            $("#emailInputDiv").append(saveBtn);
+          } else {
+            $(".emailEdit").text("Edit");
+            $("#uemail").prop("disabled", true);
+            $("#saveemail").remove();
+          }
         });
+      emailEditDiv.append(emailHeading, emailEdit);
 
-      // Append the heading and edit button to the edit section
-      nameEditSection.append(nameHeading, nameEdit);
+      let emailInputDiv = $("<div></div>")
+        .addClass("inputDiv")
+        .attr("id", "emailInputDiv");
+      let emailInput = $("<input>")
+        .attr("type", "email")
+        .attr("id", "uemail")
+        .prop("disabled", true)
+        .addClass("u_input");
+      emailInputDiv.append(emailInput);
+      updateDiv.append(emailEditDiv, emailInputDiv);
 
-      // Create the name input section (initially hidden)
-      let nameInputSection = $("<div></div>").addClass("nameInput").hide();
-      let nameInput = $("<input>").attr({
-        type: "text",
-        id: "nameInput",
-        value: "Pavan",
-      });
-      
+      let updateDiv2 = $("<div></div>").addClass("updateDiv");
+      let nameEditDiv = $("<div></div>").addClass("editDiv");
+      let nameHeading = $("<p>Your Name</p>").addClass("heading");
+      let nameEdit = $("<p>Edit</p>")
+        .addClass("nameEdit")
+        .addClass("editbtn")
+        .on("click", function () {
+          let value = $(".nameEdit").text();
+          if (value === "Edit") {
+            $(".nameEdit").text("Cancel");
+            $("#u_name").prop("disabled", false);
+            let saveBtn = $("<button>SAVE</button>")
+              .addClass("savebtn")
+              .attr("id", "savename")
+              .on("click", function () {
+                let name = $("#u_name").val();
+                let customer = {
+                  name: name,
+                };
+                updateProfile(customer);
+                $(".nameEdit").click();
+              });
+            $("#nameInputDiv").append(saveBtn);
+          } else {
+            $(".nameEdit").text("Edit");
+            $("#u_name").prop("disabled", true);
+            $("#savename").remove();
+          }
+        });
+      nameEditDiv.append(nameHeading, nameEdit);
 
-      // Append the input and save button to the input section
-      nameInputSection.append(nameInput, saveButton);
+      let nameInputDiv = $("<div></div>")
+        .addClass("inputDiv")
+        .attr("id", "nameInputDiv");
+      let nameInput = $("<input>")
+        .attr("type", "text")
+        .attr("id", "u_name")
+        .prop("disabled", true)
+        .addClass("u_input");
+      nameInputDiv.append(nameInput);
+      updateDiv2.append(nameEditDiv, nameInputDiv);
 
-      // Append the edit section and input section to the name display section
-      nameDiv.append(nameEditSection, nameInputSection);
+      let updateDiv3 = $("<div></div>").addClass("updateDiv");
 
-    
+      let cityEditDiv = $("<div></div>").addClass("editDiv");
+      let cityHeading = $("<p>Your City</p>").addClass("heading");
+      let cityEdit = $("<p>Edit</p>")
+        .addClass("cityEdit")
+        .addClass("editbtn")
+        .on("click", function () {
+          let value = $(".cityEdit").text();
+          if (value === "Edit") {
+            $(".cityEdit").text("Cancel");
+            $("#ucity").prop("disabled", false);
+            let saveBtn = $("<button>SAVE</button>")
+              .addClass("savebtn")
+              .attr("id", "savecity")
+              .on("click", function () {
+                let city = $("#ucity").val();
+                $(".cityEdit").click();
+              });
+            $("#cityInputDiv").append(saveBtn);
+          } else {
+            $(".cityEdit").text("Edit");
+            $("#ucity").prop("disabled", true);
+            $("#savecity").remove();
+          }
+        });
+      cityEditDiv.append(cityHeading, cityEdit);
+
+      let cityInputDiv = $("<div></div>")
+        .addClass("inputDiv")
+        .attr("id", "cityInputDiv");
+      let cityInput = $("<input>")
+        .attr("type", "text")
+        .attr("id", "ucity")
+        .prop("disabled", true)
+        .addClass("u_input");
+      cityInputDiv.append(cityInput);
+      updateDiv3.append(cityEditDiv, cityInputDiv);
+
+      customerProfile.append(updateDiv, updateDiv2, updateDiv3);
+
+      $("#datas").append(customerProfile);
     }
+
+    // Call the function to create the customer profile
+    customerProfile();
 
     $("#orders").on("click", function () {
       $("#datas").empty();
